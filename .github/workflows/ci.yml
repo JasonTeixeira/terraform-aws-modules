@@ -1,0 +1,79 @@
+name: CI — Validate & Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [vpc, s3-static-site, lambda-api, github-oidc]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7"
+
+      - name: Terraform Init
+        working-directory: modules/${{ matrix.module }}
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        working-directory: modules/${{ matrix.module }}
+        run: terraform validate
+
+      - name: Terraform Format Check
+        working-directory: modules/${{ matrix.module }}
+        run: terraform fmt -check -recursive
+
+  lint:
+    name: TFLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Init TFLint
+        run: tflint --init
+
+      - name: Lint VPC
+        working-directory: modules/vpc
+        run: tflint
+
+      - name: Lint S3 Static Site
+        working-directory: modules/s3-static-site
+        run: tflint
+
+      - name: Lint Lambda API
+        working-directory: modules/lambda-api
+        run: tflint
+
+      - name: Lint GitHub OIDC
+        working-directory: modules/github-oidc
+        run: tflint
+
+  security:
+    name: Security Scan (Checkov)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: modules/
+          framework: terraform
+          quiet: true
+          soft_fail: true

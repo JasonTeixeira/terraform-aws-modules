@@ -1,0 +1,6 @@
+aws_region      = "us-east-1"
+project_name    = "my-project"
+domain_name     = "docs.example.com"
+certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/abc-123"
+github_org      = "YourGitHubUsername"
+github_repo     = "your-repo-name"
