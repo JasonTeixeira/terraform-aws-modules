@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        module: [vpc, s3-static-site, lambda-api, github-oidc]
+        module: [vpc, s3-static-site, lambda-api, github-oidc, rds-postgres]
 
     steps:
       - uses: actions/checkout@v4
@@ -61,6 +61,10 @@ jobs:
 
       - name: Lint GitHub OIDC
         working-directory: modules/github-oidc
+        run: tflint
+
+      - name: Lint RDS Postgres
+        working-directory: modules/rds-postgres
         run: tflint
 
   security:
